@@ -1,0 +1,46 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: website-api-gateway
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: website-api-gateway
+    spec:
+      containers:
+      - name: website-api-gateway
+        image: iancollington/bootifulmicropizza_website-api-gateway
+        imagePullPolicy: Always
+        env:
+          - name: BOOTIFUL_MICRO_PIZZA_ENV
+            value: prod
+          - name: BUILD_DATE
+            value: BUILD_DATE_PLACEHOLDER
+          - name: OAUTH2_PUBLIC_KEY
+            valueFrom:
+              secretKeyRef:
+                name: oauth2-resource
+                key: jwt.keyValue
+        resources:
+          requests:
+            cpu: "0.25"
+            memory: 1024Mi
+          limits:
+            cpu: "1"
+            memory: 1536Mi
+        ports:
+        - containerPort: 8000
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 300
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
